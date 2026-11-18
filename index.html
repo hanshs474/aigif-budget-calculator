@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GIF File Size &amp; Frame Rate Budget Calculator</title>
+<meta name="description" content="Estimate animated GIF file size by resolution, duration, fps, and palette depth, and compare target budgets for Discord (256 KB), Slack (128 KB), and email.">
+<link rel="canonical" href="https://aigif-budget-calculator.onrender.com/">
+<style>
+*{box-sizing:border-box}
+body{margin:0;font:16px/1.65 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#0b0b12;color:#f1eff7}
+main{max-width:860px;margin:0 auto;padding:36px 20px 72px}
+h1{font-size:30px;line-height:1.25;margin:0 0 10px;letter-spacing:-.02em}
+h2{font-size:20px;margin:34px 0 10px}
+p.lead{color:#b4aec7;margin:0 0 24px;font-size:17px}
+.card{background:#141320;border:1px solid #29253c;border-radius:16px;padding:22px;margin:18px 0}
+label{display:block;font-size:13px;font-weight:600;color:#b4aec7;margin:14px 0 6px}
+input[type=text],input[type=number],input[type=file],textarea{width:100%;background:#0b0b12;color:#f1eff7;border:1px solid #352f4f;border-radius:10px;padding:10px 12px;font:inherit}
+input[type=range]{width:100%;accent-color:#8b5cf6}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px}
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.pill{background:#1d1b2d;color:#d6d0e8;border:1px solid #352f4f;border-radius:9px;padding:7px 12px;font:600 13px inherit;cursor:pointer}
+.pill.active{background:#7c3aed;border-color:#8b5cf6;color:#fff}
+button.primary{background:#7c3aed;color:#fff;border:0;border-radius:10px;padding:11px 18px;font:600 15px inherit;cursor:pointer;margin-top:14px}
+button.ghost{background:#232036;color:#e5e0f4;border:1px solid #352f4f;border-radius:10px;padding:10px 16px;font:600 14px inherit;cursor:pointer;margin-top:14px}
+.cta{display:inline-block;margin-top:10px;background:#7c3aed;color:#fff;text-decoration:none;padding:11px 18px;border-radius:10px;font-weight:600}
+a{color:#a78bfa}
+.muted{color:#968fb0;font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-top:14px}
+.thumb{background:#0b0b12;border:1px solid #29253c;border-radius:10px;padding:8px;text-align:center}
+.thumb img,.thumb canvas{max-width:100%;height:auto;border-radius:6px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:12px}
+th,td{text-align:left;padding:9px 8px;border-bottom:1px solid #262238}
+th{color:#b4aec7;font-weight:600}
+canvas,img,video{max-width:100%;border-radius:10px}
+footer{margin-top:44px;color:#8e87a8;font-size:13px;border-top:1px solid #221e33;padding-top:18px}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:#352f4f;border-radius:10px}
+::-webkit-scrollbar-track{background:#0b0b12}
+</style>
+</head>
+<body>
+<main>
+<h1>GIF File Size & Frame Budget Calculator</h1>
+<p class="lead">Estimate how width, height, duration, frame rate, and color count affect animated GIF weight before encoding—plus check platform budgets at a glance.</p>
+<div class="card">
+  <div class="row">
+    <div><label>Width (px)</label><input id="w" type="number" min="16" max="1920" value="400"></div>
+    <div><label>Height (px)</label><input id="h" type="number" min="16" max="1920" value="400"></div>
+    <div><label>Duration (seconds)</label><input id="d" type="number" min="0.2" max="30" step="0.2" value="2.5"></div>
+    <div><label>FPS</label><input id="fps" type="number" min="1" max="30" value="10"></div>
+  </div>
+  <label>Color Palette</label>
+  <div class="pills" id="c-pills">
+    <button type="button" class="pill" data-c="64">64 colors (lighter)</button>
+    <button type="button" class="pill" data-c="128">128 colors (balanced)</button>
+    <button type="button" class="pill active" data-c="256">256 colors (full)</button>
+  </div>
+  <p class="muted" id="est" style="font-size:16px;color:#f1eff7;margin-top:16px"></p>
+  <table id="tbl"></table>
+</div>
+<p>To hit an exact byte target like 256 KB or 1 MB automatically on a real file, open <a href="https://aigifmaker.ai/gif-compressor?utm_source=onrender&utm_medium=tool">GIF Compressor</a> or generate lightweight GIFs from text on <a href="https://aigifmaker.ai/?utm_source=onrender&utm_medium=tool">AI GIF Maker</a>.</p>
+<div class="card">
+  <strong>Have a GIF that is too large? Shrink it directly in your browser.</strong><br>
+  <a class="cta" href="https://aigifmaker.ai/gif-compressor?utm_source=onrender&utm_medium=tool">Open GIF Compressor</a>
+</div>
+<footer>
+  Free browser utility from <a href="https://aigifmaker.ai/?utm_source=onrender&utm_medium=tool">AI GIF Maker</a> — Turn text into animated GIFs with AI GIF Maker. Native GIF generation — no video conversion. Everything in this tool runs locally in your browser.
+</footer>
+</main>
+<script>const $=id=>document.getElementById(id);let COLORS=256;
+function calc(){
+  const w=Math.max(16,+$('w').value||400),h=Math.max(16,+$('h').value||400),d=Math.max(0.2,+$('d').value||2.5),fps=Math.max(1,+$('fps').value||10);
+  const frames=Math.round(d*fps),bpp=COLORS<=64?0.22:COLORS<=128?0.29:0.36;
+  const estBytes=Math.round(w*h*frames*bpp),kb=estBytes/1024;
+  $('est').textContent=frames+' frames · Est. LZW size: ~'+(kb>=1024?(kb/1024).toFixed(2)+' MB':kb.toFixed(0)+' KB')+' (actual varies by motion & background)';
+  const targets=[['Slack Emoji',128],['Discord Emoji',256],['Discord Sticker',512],['Email Inline GIF',1024],['GitHub README',10240]];
+  $('tbl').innerHTML='<tr><th>Target</th><th>Limit</th><th>Status</th></tr>'+targets.map(([n,k])=>'<tr><td>'+n+'</td><td>'+(k>=1024?(k/1024)+' MB':k+' KB')+'</td><td>'+(kb<=k?'Likely fits':'Likely over — reduce width or fps')+'</td></tr>').join('');
+}
+document.querySelectorAll('#c-pills .pill').forEach(b=>b.onclick=()=>{document.querySelectorAll('#c-pills .pill').forEach(x=>x.classList.remove('active'));b.classList.add('active');COLORS=+b.dataset.c;calc()});
+['w','h','d','fps'].forEach(id=>$(id).addEventListener('input',calc));calc();</script>
+</body>
+</html>

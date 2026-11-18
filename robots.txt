@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://aigif-budget-calculator.onrender.com/sitemap.xml
